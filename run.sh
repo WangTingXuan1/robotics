@@ -24,10 +24,14 @@ case "${1:-all}" in
   generate) python experiment.py generate --samples-per-class "${2:-50}" ;;
   train) python experiment.py train --epochs "${2:-35}" ;;
   evaluate) python experiment.py evaluate ;;
+  compare)
+    python model_sweep.py --seeds 42 43 44 --epochs 45 --patience 10
+    python ensemble_eval.py
+    ;;
   all)
     python experiment.py generate --samples-per-class "${2:-50}"
     python experiment.py train --epochs "${3:-35}"
     python experiment.py evaluate
     ;;
-  *) echo "Usage: ./run.sh [generate N|train EPOCHS|evaluate|all N EPOCHS]" >&2; exit 2 ;;
+  *) echo "Usage: ./run.sh [generate N|train EPOCHS|evaluate|compare|all N EPOCHS]" >&2; exit 2 ;;
 esac

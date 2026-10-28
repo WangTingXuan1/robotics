@@ -161,9 +161,11 @@ def train(epochs=8):
     set_seed()
     OUT.mkdir(exist_ok=True)
     data = np.load(OUT / "dataset.npz")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Training baseline models on {device}", flush=True)
     summary = {}
     for mode in ("vision", "touch", "fusion"):
-        model = Classifier(mode)
+        model = Classifier(mode).to(device)
         opt = torch.optim.Adam(model.parameters(), lr=0.002)
         train_loader = DataLoader(Pairs(data, 0, mode), batch_size=32, shuffle=True)
         val_loader = DataLoader(Pairs(data, 1, mode), batch_size=64)
@@ -171,6 +173,7 @@ def train(epochs=8):
         for epoch in range(epochs):
             model.train()
             for v, t, y in train_loader:
+                v, t, y = v.to(device), t.to(device), y.to(device)
                 opt.zero_grad()
                 loss = nn.functional.cross_entropy(model(v, t), y)
                 loss.backward()
@@ -179,6 +182,7 @@ def train(epochs=8):
             correct = total = 0
             with torch.no_grad():
                 for v, t, y in val_loader:
+                    v, t, y = v.to(device), t.to(device), y.to(device)
                     pred = model(v, t).argmax(1)
                     correct += int((pred == y).sum())
                     total += len(y)

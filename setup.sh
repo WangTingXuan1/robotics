@@ -28,7 +28,14 @@ python -m pip install 'numpy==1.26.4' 'opencv-python==4.11.0.86' \
   'pyglet==2.1.19' 'pillow==12.3.0' 'lxml==6.1.3' \
   'pycollada==0.9.3' 'imageio==2.38.0' 'imageio-ffmpeg==0.6.0'
 python -m pip install 'urdfpy==0.0.22' --no-deps
-python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+if [[ "${1:-gpu}" == "cpu" ]]; then
+  python -m pip install 'torch==2.11.0+cpu' 'torchvision==0.26.0+cpu' \
+    --index-url https://download.pytorch.org/whl/cpu
+else
+  python -m pip install 'torch==2.11.0+cu128' 'torchvision==0.26.0+cu128' \
+    --index-url https://download.pytorch.org/whl/cu128
+fi
+python -m pip install 'timm==1.0.30'
 
 if [[ ! -d vendor/tacto/.git ]]; then
   mkdir -p vendor
@@ -37,4 +44,4 @@ fi
 git -C vendor/tacto fetch origin a21d0c4626d74a546d94859226c2fea348babb6a
 git -C vendor/tacto checkout --detach a21d0c4626d74a546d94859226c2fea348babb6a
 python -m pip install -e vendor/tacto --no-deps
-python -c 'import torch, pybullet, tacto; print("Environment ready:", torch.__version__)'
+python -c 'import torch, pybullet, tacto; print("Environment ready:", torch.__version__, "CUDA:", torch.cuda.is_available())'

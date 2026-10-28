@@ -13,7 +13,7 @@ cd <仓库目录>
 ./run.sh all
 ```
 
-`setup.sh` 会创建 Conda 环境、安装依赖并下载固定版本的 TACTO。需要能访问 GitHub 和 Python 包源。当前实现使用 CPU 版 PyTorch；小规模课程实验无需显卡。
+`setup.sh` 默认安装 CUDA 12.8 版 PyTorch；无 NVIDIA GPU 的组员可运行 `./setup.sh cpu`，但 `./run.sh compare` 要求 GPU。脚本还会下载固定版本的 TACTO。预训练 ViT 权重首次运行时需要联网获取。
 
 ## 一条命令运行
 
@@ -30,6 +30,14 @@ cd /home/maxwa/study/robotics
 cd /home/maxwa/study/robotics
 ./run.sh evaluate
 ```
+
+GPU 架构对照（17 种组合、每种 3 个随机种子）：
+
+```bash
+./run.sh compare
+```
+
+详细的模型对照和统计解释见 `docs/RESULTS.md`。
 
 也可分步运行：
 
@@ -69,11 +77,11 @@ python experiment.py evaluate
 - `comparison.png`：两组对照图。
 - `demo.gif`、`demo.mp4`：一个测试样本从视觉初判、接触到最终预测的演示。
 
-当前默认运行的测试结果：仅视觉 40.0%，仅触觉 56.7%，融合 54.4%；主动选点 96.7%，随机选点 83.3%。主动选点平均接触 1.67 次，随机选点 1.90 次。数值仅针对本项目生成的 30 个测试场景，不代表公开数据集或真实物体的性能。
+当前 GPU 重训的原始 CNN 基线：仅视觉 46.7%，仅触觉 54.4%，融合 60.0%；主动选点 100.0%，随机选点 83.3%。新架构对照中，验证集选出的预训练 ViT＋触觉 CNN＋拼接模型，三种子集成在测试集上达到 64.4%。数值仅针对本项目生成的 30 个测试场景，不代表公开数据集或真实物体的性能。
 
 ## 环境说明
 
-- Python 3.10，PyTorch 2.14.1+cpu，PyBullet 3.2.7，TACTO 0.0.3。
+- Python 3.10，PyTorch 2.11.0+cu128，torchvision 0.26.0+cu128，PyBullet 3.2.7，TACTO 0.0.3。本机使用 RTX 5070 Ti Laptop GPU。
 - TACTO 官方仓库固定为提交 `a21d0c4626d74a546d94859226c2fea348babb6a`，在 `vendor/tacto`。它由 `setup.sh` 下载，不会直接提交到本仓库。
 - 官方 TACTO 依赖的旧 OpenGL Git 地址在安装时无法连接；本环境改用 PyPI 的 PyOpenGL 3.1.0 和 EGL 无界面渲染，并已实际验证。
 - `urdfpy` 的元数据要求旧版 `networkx` 与 `pycollada`，但旧版 `networkx` 与 Python 3.10 不兼容。环境采用 networkx 2.8.8、pycollada 0.9.3；项目所用 TACTO 渲染接口已验证可运行。
